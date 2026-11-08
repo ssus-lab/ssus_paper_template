@@ -4,16 +4,16 @@ description = "{{ description }}"
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
-# The pins. Each format variable is the source `quarto add` installs from;
-# to take a later release, change the tag here (and ssus-papers' tag below,
-# the same release), run `pixi run formats`, and commit the result.
-# wordcount has no release tags, so it is pinned to a commit's archive.
 [activation.env]
 # Jupyter looks in the environment before the user's kernels, so Quarto runs
 # a document's Python in this environment's python3 kernel (Quarto takes the
 # first Python kernel it finds, and user kernels otherwise come first).
 JUPYTER_PREFER_ENV_PATH = "1"
-SSUS_PAPERS ="ssus-lab/ssus_papers@v0.0.7"
+# The pins. Each format variable is the source `quarto add` installs from;
+# to take a later release, change the tag here (and ssus-papers' tag below,
+# the same release), run `pixi run formats`, and commit the result.
+# wordcount has no release tags, so it is pinned to a commit's archive.
+SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.7"
 SSUS_SLIDES = "ssus-lab/ssus_slides@v0.2.2"
 WORDCOUNT = "https://github.com/christopherkenny/wordcount/archive/57846cbf8fb01cfd9dd00ed1f72a241fb9731a38.zip"
 
