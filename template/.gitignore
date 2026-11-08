@@ -26,3 +26,4 @@ __pycache__/
 /slides/mathjax-config.js
 /slides/*.html
 /slides/*_files/
+/paper/_blind/
