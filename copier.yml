@@ -1,0 +1,43 @@
+# ssus_paper_template: the layout of an SSUS paper's repository.
+#
+#   pixi exec copier copy gh:ssus-lab/ssus_paper_template my-paper
+#
+# Only the project's names are asked for. The paper's title and authorship
+# live in paper/_quarto.yml, which `pixi run init` copies in from
+# ssus_papers' starter.
+
+_min_copier_version: "9.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+
+project_name:
+  type: str
+  help: The repository's name (the pixi workspace takes it too)
+  default: "{{ _copier_conf.dst_path | basename }}"
+  validator: >-
+    {% if not (project_name | regex_search('^[A-Za-z][A-Za-z0-9_.-]*$')) %}
+    letters, digits, '_', '-', and '.', starting with a letter
+    {% endif %}
+
+package:
+  type: str
+  help: The Python package in src/, which analysis/ imports
+  default: "{{ project_name | lower | replace('-', '_') | replace('.', '_') }}"
+  validator: >-
+    {% if not (package | regex_search('^[a-z_][a-z0-9_]*$')) %}
+    a Python identifier: lowercase letters, digits, and '_'
+    {% endif %}
+
+description:
+  type: str
+  help: One line on what the project is
+  default: "The analysis and manuscript of a paper."
+
+_message_after_copy: |
+  Next, in {{ _copier_conf.dst_path }}:
+
+      git init
+      pixi run init      # the paper and slide starters, at the pinned formats
+
+  then set the title and authorship in paper/_quarto.yml. README.md lists
+  every task.

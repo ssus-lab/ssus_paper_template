@@ -1,0 +1,28 @@
+# The data stay out of git; the folder stays.
+/data/*
+!/data/.gitkeep
+
+.pixi/
+__pycache__/
+*.pyc
+.DS_Store
+.quarto/
+**/*.quarto_ipynb
+# qdiff's output and staging
+.qdiff/
+
+# Render byproducts. The formats copy their fonts and mark beside each input
+# (format-resources); the patterns are rooted in each folder, so the
+# installed _extensions/ and paper/figures/ stay tracked.
+/paper/*.ttf
+/paper/*.otf
+/paper/ssus-mark-light.pdf
+/paper/*.pdf
+/paper/*.tex
+/paper/*.html
+/paper/*_files/
+/slides/*.ttf
+/slides/ssus-mark-*.svg
+/slides/mathjax-config.js
+/slides/*.html
+/slides/*_files/

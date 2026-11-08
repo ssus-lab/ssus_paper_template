@@ -1,0 +1,51 @@
+# {{ project_name }}
+
+{{ description }}
+
+## Build
+
+The project needs [pixi](https://pixi.sh), a TeX distribution for the pdfs
+(`quarto install tinytex` serves), and, for track-changes diffs,
+[typst-diff](https://github.com/alexanderkoller/typst-diff)
+(`cargo install --locked --git https://github.com/alexanderkoller/typst-diff typst-diff`).
+`pixi.toml` and `pixi.lock` supply the rest: Python, Quarto, the formats'
+Python package, and qdiff.
+
+| Task | Does |
+|---|---|
+| `pixi run init` | once: copies the paper and deck starters into `paper/` and `slides/`, with their formats |
+| `pixi run render` | the working-paper pdf, `paper/paper.pdf` |
+| `pixi run html` | the working-paper html; `pixi run preview` re-renders it on save |
+| `pixi run blind` | the blinded manuscript, `paper/blind.pdf` |
+| `pixi run titlepage` | the separate title page, `paper/title-page.pdf` |
+| `pixi run submit` | both, then the journal bundle in `paper/submission/`, checked for identity leaks |
+| `pixi run diff OLD [NEW]` | the track-changes pdf from OLD to NEW, each a git ref or a directory; NEW defaults to the working tree |
+| `pixi run tables` | every table formatter in `analysis/tables/`; the renders run it first |
+| `pixi run slides` | the deck |
+| `pixi run formats` | reinstalls every format at its pin; `pixi run versions` lists them |
+
+`pixi task list` shows every task.
+
+## Layout
+
+```
+data/              the data (git-ignored)
+notebooks/         exploratory work
+src/{{ package }}/   the project's code, installed editable
+analysis/          the run scripts; each writes raw output to results/
+analysis/tables/   the formatters; each reads results/ and writes a table for the paper
+results/           the raw outputs (CSV)
+paper/             the manuscript: paper.qmd, _quarto.yml (title, abstract, authorship),
+                   _quarto-blind.yml (the submission profile), title-page.qmd
+slides/            the talk: slides.qmd
+```
+
+## Updating
+
+- **A format.** Change its tag in `pixi.toml`'s `[activation.env]` (for
+  `ssus_papers`, also `ssus-papers`' tag, the same release), run
+  `pixi run formats` and `pixi install`, and commit the installed
+  `_extensions/` with the pin.
+- **The layout.** `pixi exec copier update` merges the template's later
+  changes to these files with the project's own; the working tree must be
+  committed first.

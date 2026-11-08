@@ -1,0 +1,62 @@
+[workspace]
+name = "{{ project_name }}"
+description = "{{ description }}"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64"]
+
+# The pins. Each format variable is the source `quarto add` installs from;
+# to take a later release, change the tag here (and ssus-papers' tag below,
+# the same release), run `pixi run formats`, and commit the result.
+# wordcount has no release tags, so it is pinned to a commit's archive.
+[activation.env]
+SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.7"
+SSUS_SLIDES = "ssus-lab/ssus_slides@v0.2.2"
+WORDCOUNT = "https://github.com/christopherkenny/wordcount/archive/57846cbf8fb01cfd9dd00ed1f72a241fb9731a38.zip"
+
+[dependencies]
+python = "3.13.*"
+# The Quarto every copy of the paper renders with, recorded in pixi.lock.
+quarto = "1.11.*"
+ipykernel = "*"
+nbclient = "*"
+nbformat = "*"
+pyyaml = "*"
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+
+[pypi-dependencies]
+# src/, installed editable so analysis/ and notebooks/ import it.
+{{ package }} = { path = ".", editable = true }
+# ssus_papers.tables and ssus_papers.submit, from the formats' release.
+ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.7", subdirectory = "python" }
+# Track-changes PDFs between two versions of the paper (needs typst-diff).
+qdiff = { git = "https://github.com/knaaptime/qdiff", tag = "v0.2.0" }
+
+{% raw -%}
+[tasks]
+# Once, in a new project: each starter, with its formats, at the pinned tags.
+init-paper = { cmd = "mkdir -p paper && cd paper && quarto use template $SSUS_PAPERS --no-prompt", description = "Copy the paper starter and install the paper formats into paper/" }
+init-slides = { cmd = "mkdir -p slides && cd slides && quarto use template $SSUS_SLIDES --no-prompt", description = "Copy the deck starter and install the slide format into slides/" }
+init = { depends-on = ["init-paper", "init-slides", "wordcount"], description = "Set up paper/ and slides/ in a new project" }
+
+# Install, or reinstall, every format at its pin; safe to rerun.
+formats-paper = { cmd = "quarto add $SSUS_PAPERS --no-prompt", cwd = "paper" }
+formats-slides = { cmd = "quarto add $SSUS_SLIDES --no-prompt", cwd = "slides" }
+wordcount = { cmd = "quarto add $WORDCOUNT --no-prompt", cwd = "paper", description = "Install the wordcount filter into paper/" }
+formats = { depends-on = ["formats-paper", "formats-slides", "wordcount"], description = "Install every format at the tag pinned in pixi.toml" }
+versions = { cmd = "echo pinned: $SSUS_PAPERS, $SSUS_SLIDES, $WORDCOUNT && cd paper && quarto list extensions && cd ../slides && quarto list extensions", description = "Show the pins and the installed formats" }
+
+# The paper's copies, built from the same prose.
+tables = { cmd = "python analysis/tables/make_tables.py", description = "Run every table formatter in analysis/tables/" }
+render = { cmd = "quarto render paper.qmd --to ssus-masthead-pdf", cwd = "paper", depends-on = ["tables"], description = "The working-paper pdf" }
+html = { cmd = "quarto render paper.qmd --to ssus-masthead-html", cwd = "paper", depends-on = ["tables"], description = "The working-paper html" }
+preview = { cmd = "quarto preview paper.qmd --to ssus-masthead-html", cwd = "paper", depends-on = ["tables"], description = "Preview the html, re-rendering on save" }
+blind = { cmd = "quarto render paper.qmd --profile blind --to ssus-blind-pdf", cwd = "paper", depends-on = ["tables"], description = "The blinded manuscript" }
+titlepage = { cmd = "quarto render title-page.qmd --to ssus-titlepage-pdf", cwd = "paper", description = "The separate title page" }
+submit = { cmd = "python -m ssus_papers.submit paper.qmd", cwd = "paper", depends-on = ["blind", "titlepage"], description = "Stage the journal bundle in paper/submission/ and run the blind-hygiene checklist" }
+diff = { cmd = "qdiff {{ old }} {{ new }} --entry paper/paper.qmd", args = ["old", { arg = "new", default = "." }], description = "Track-changes pdf from OLD to NEW (a git ref or a directory; NEW defaults to the working tree)" }
+
+# The talk.
+slides = { cmd = "quarto render", cwd = "slides", description = "Render the deck" }
+{%- endraw %}

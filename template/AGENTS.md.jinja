@@ -1,0 +1,39 @@
+# {{ project_name }} — agent instructions
+
+## What this is
+
+{{ description }} The repository is laid out by `ssus_paper_template`;
+`.copier-answers.yml` records the template release.
+
+## Layout
+
+| Folder | Holds |
+|---|---|
+| `data/` | the data (git-ignored) |
+| `notebooks/` | exploratory work |
+| `src/{{ package }}/` | the project's code as a package, installed editable |
+| `analysis/` | the run scripts; each writes raw output (CSV) to `results/` |
+| `analysis/tables/` | the formatters; each reads `results/` and writes `paper/_tbl_<name>.md` with `ssus_papers.Table` |
+| `results/` | the raw outputs |
+| `paper/` | the manuscript, a Quarto project: `paper.qmd`, `_quarto.yml` (title, abstract, authorship), `_quarto-blind.yml` (the submission profile), `title-page.qmd` |
+| `slides/` | the talk, a Quarto project: `slides.qmd` |
+
+## Build
+
+- Every command is a pixi task: `pixi task list`, then `pixi run <task>`.
+  Shell belongs inside a task in `pixi.toml`, never in a loose script.
+- Run analysis as `pixi run python analysis/<script>.py`.
+- The formats are dependencies. `pixi run init` and `pixi run formats`
+  install them at the pins in `pixi.toml`, and the installed `_extensions/`
+  folders are committed. Never copy, edit, or patch an extension folder: a
+  format changes in its own repository and arrives here by a new pin.
+
+## Rules
+
+- The analysis writes raw outputs; the formatters make the tables. No
+  number is typed into the manuscript by hand.
+- Every copy of the paper (working paper, blind manuscript, title page) is
+  built from `paper/paper.qmd` and `paper/_quarto.yml`. The identity lives
+  in `_quarto.yml`, and the blind format omits it; never try to remove it
+  with a profile, which merges and cannot.
+- No task or script stages, commits, or tags anything in git.
