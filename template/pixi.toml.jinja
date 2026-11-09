@@ -9,6 +9,9 @@ platforms = ["osx-arm64", "linux-64"]
 # a document's Python in this environment's python3 kernel (Quarto takes the
 # first Python kernel it finds, and user kernels otherwise come first).
 JUPYTER_PREFER_ENV_PATH = "1"
+# typst-diff, which qdiff drives, is built from source into .pixi/tools/ by
+# the typst-diff task below; this puts it on the paper environment's PATH.
+PATH = "$PIXI_PROJECT_ROOT/.pixi/tools/bin:$PATH"
 # The pins. Each format variable is the source `quarto add` installs from;
 # to take a later release, change the tag here (and ssus-papers' tag below,
 # the same release), run `pixi run formats`, and commit the result.
@@ -36,6 +39,25 @@ matplotlib = "*"
 ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.8", subdirectory = "python" }
 # Track-changes PDFs between two versions of the paper (needs typst-diff).
 qdiff = { git = "https://github.com/knaaptime/qdiff", tag = "v0.3.0" }
+
+# typst-diff has no releases and no conda package, so pixi builds it with
+# cargo, in an environment of its own that carries the Rust toolchain and
+# is installed on the first `pixi run diff`; the paper environment stays
+# without it. Pinned to a commit: the build is skipped, offline, while
+# .pixi/tools/ records that commit, and a new pin rebuilds on the next diff.
+# Cargo's downloads stay in the project (.pixi/cargo/).
+[feature.typst-diff.dependencies]
+rust = "*"
+
+[feature.typst-diff.activation.env]
+TYPST_DIFF_REV = "f941929c0f080da5edeca9d573faf7ff042316f7"
+CARGO_HOME = "$PIXI_PROJECT_ROOT/.pixi/cargo"
+
+[feature.typst-diff.tasks]
+typst-diff = { cmd = "grep -qs $TYPST_DIFF_REV $PIXI_PROJECT_ROOT/.pixi/tools/.crates.toml || cargo install --force --locked --git https://github.com/alexanderkoller/typst-diff --rev $TYPST_DIFF_REV typst-diff --root $PIXI_PROJECT_ROOT/.pixi/tools", description = "Build typst-diff, which qdiff drives, into .pixi/tools/" }
+
+[environments]
+typst-diff = { features = ["typst-diff"], no-default-feature = true }
 
 {% raw -%}
 [tasks]
@@ -67,7 +89,7 @@ submit = { cmd = "python -m ssus_papers.submit {{ label }} --paper paper", args 
 # Track changes from OLD (submissions/LABEL/source, a git ref, or a
 # directory) to NEW (default: the working tree), rendered under the blind
 # profile, so the copy is anonymous.
-diff = { cmd = "qdiff {{ old }} {{ new }} --entry paper/paper.qmd --profile {{ profile }}", args = ["old", { arg = "new", default = "." }, { arg = "profile", default = "blind" }], description = "Track-changes pdf from OLD to NEW, anonymous under the blind profile" }
+diff = { cmd = "qdiff {{ old }} {{ new }} --entry paper/paper.qmd --profile {{ profile }}", args = ["old", { arg = "new", default = "." }, { arg = "profile", default = "blind" }], depends-on = [{ task = "typst-diff", environment = "typst-diff" }], description = "Track-changes pdf from OLD to NEW, anonymous under the blind profile" }
 
 # The talk.
 slides = { cmd = "quarto render", cwd = "slides", description = "Render the deck" }

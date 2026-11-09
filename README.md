@@ -27,10 +27,14 @@ starter into `paper/` and the deck starter into `slides/`, and installs the
 formats beside them. Then set the title, abstract, and authorship in
 `paper/_quarto.yml` and write `paper/paper.qmd`.
 
-Beyond pixi, a project needs a TeX distribution for the pdfs
-(`quarto install tinytex` serves) and, for diffs,
-[typst-diff](https://github.com/alexanderkoller/typst-diff):
-`cargo install --locked --git https://github.com/alexanderkoller/typst-diff typst-diff`.
+Beyond pixi, a project needs only a TeX distribution for the pdfs
+(`quarto install tinytex` serves). qdiff drives
+[typst-diff](https://github.com/alexanderkoller/typst-diff), which has no
+releases and no conda package: the first `pixi run diff` builds it from a
+pinned commit into `.pixi/tools/`, with a Rust toolchain pixi installs in a
+`typst-diff` environment of its own, and puts it on the paper environment's
+PATH. The build takes a few minutes, once; the paper environment carries no
+Rust.
 
 ## The layout
 

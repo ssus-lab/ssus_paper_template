@@ -4,12 +4,14 @@
 
 ## Build
 
-The project needs [pixi](https://pixi.sh), a TeX distribution for the pdfs
-(`quarto install tinytex` serves), and, for track-changes diffs,
-[typst-diff](https://github.com/alexanderkoller/typst-diff)
-(`cargo install --locked --git https://github.com/alexanderkoller/typst-diff typst-diff`).
-`pixi.toml` and `pixi.lock` supply the rest: Python, Quarto, the formats'
-Python package, and qdiff.
+The project needs [pixi](https://pixi.sh) and a TeX distribution for the
+pdfs (`quarto install tinytex` serves). `pixi.toml` and `pixi.lock` supply
+the rest: Python, Quarto, the formats' Python package, and qdiff. The first
+`pixi run diff` also builds
+[typst-diff](https://github.com/alexanderkoller/typst-diff), which qdiff
+drives, from a pinned commit into `.pixi/tools/`, with a Rust toolchain
+pixi installs in an environment of its own; that build takes a few
+minutes, once.
 
 | Task | Does |
 |---|---|
