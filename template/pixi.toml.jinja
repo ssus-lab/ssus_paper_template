@@ -13,7 +13,7 @@ JUPYTER_PREFER_ENV_PATH = "1"
 # to take a later release, change the tag here (and ssus-papers' tag below,
 # the same release), run `pixi run formats`, and commit the result.
 # wordcount has no release tags, so it is pinned to a commit's archive.
-SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.7"
+SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.8"
 SSUS_SLIDES = "ssus-lab/ssus_slides@v0.2.2"
 WORDCOUNT = "https://github.com/christopherkenny/wordcount/archive/57846cbf8fb01cfd9dd00ed1f72a241fb9731a38.zip"
 
@@ -33,9 +33,9 @@ matplotlib = "*"
 # src/, installed editable so analysis/ and notebooks/ import it.
 {{ package }} = { path = ".", editable = true }
 # ssus_papers.tables and ssus_papers.submit, from the formats' release.
-ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.7", subdirectory = "python" }
+ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.8", subdirectory = "python" }
 # Track-changes PDFs between two versions of the paper (needs typst-diff).
-qdiff = { git = "https://github.com/knaaptime/qdiff", tag = "v0.2.1" }
+qdiff = { git = "https://github.com/knaaptime/qdiff", tag = "v0.3.0" }
 
 {% raw -%}
 [tasks]
@@ -51,15 +51,23 @@ wordcount = { cmd = "quarto add $WORDCOUNT --no-prompt", cwd = "paper", descript
 formats = { depends-on = ["formats-paper", "formats-slides", "wordcount"], description = "Install every format at the tag pinned in pixi.toml" }
 versions = { cmd = "echo pinned: $SSUS_PAPERS, $SSUS_SLIDES, $WORDCOUNT && cd paper && quarto list extensions && cd ../slides && quarto list extensions", description = "Show the pins and the installed formats" }
 
-# The paper's copies, built from the same prose.
+# The paper's copies, built from the same prose. Each copy is a Quarto
+# profile with its own formats and output folder (paper/_quarto-*.yml), so
+# no copy's render touches another's files; `render` builds them all.
 tables = { cmd = "python analysis/tables/make_tables.py", description = "Run every table formatter in analysis/tables/" }
-render = { cmd = "quarto render paper.qmd --to ssus-masthead-pdf", cwd = "paper", depends-on = ["tables"], description = "The working-paper pdf" }
-html = { cmd = "quarto render paper.qmd --to ssus-masthead-html", cwd = "paper", depends-on = ["tables"], description = "The working-paper html" }
-preview = { cmd = "quarto preview paper.qmd --to ssus-masthead-html", cwd = "paper", depends-on = ["tables"], description = "Preview the html, re-rendering on save" }
-blind = { cmd = "quarto render paper.qmd --profile blind --to ssus-blind-pdf", cwd = "paper", depends-on = ["tables"], description = "The blinded manuscript" }
-titlepage = { cmd = "quarto render title-page.qmd --to ssus-titlepage-pdf", cwd = "paper", description = "The separate title page" }
-submit = { cmd = "python -m ssus_papers.submit paper.qmd", cwd = "paper", depends-on = ["blind", "titlepage"], description = "Stage the journal bundle in paper/submission/ and run the blind-hygiene checklist" }
-diff = { cmd = "qdiff {{ old }} {{ new }} --entry paper/paper.qmd", args = ["old", { arg = "new", default = "." }], description = "Track-changes pdf from OLD to NEW (a git ref or a directory; NEW defaults to the working tree)" }
+working = { cmd = "quarto render paper.qmd", cwd = "paper", depends-on = ["tables"], description = "The working paper, pdf and html, into paper/_output/working/" }
+blind = { cmd = "quarto render paper.qmd --profile blind", cwd = "paper", depends-on = ["tables"], description = "The blinded manuscript, pdf and tex, into paper/_output/blind/" }
+titlepage = { cmd = "quarto render title-page.qmd --profile titlepage", cwd = "paper", description = "The title page, pdf and tex, into paper/_output/titlepage/" }
+render = { depends-on = ["working", "blind", "titlepage"], description = "Every copy of the paper, from the same prose" }
+preview = { cmd = "quarto preview paper.qmd --to ssus-masthead-html", cwd = "paper", depends-on = ["tables"], description = "Preview the working-paper html, re-rendering on save" }
+
+# A submission, frozen once in submissions/LABEL/: the upload bundle, the
+# blind-hygiene checklist's result, and a snapshot of the paper's source.
+submit = { cmd = "python -m ssus_papers.submit {{ label }} --paper paper", args = ["label"], depends-on = ["render"], description = "Render every copy, then freeze submissions/LABEL/" }
+# Track changes from OLD (submissions/LABEL/source, a git ref, or a
+# directory) to NEW (default: the working tree), rendered under the blind
+# profile, so the copy is anonymous.
+diff = { cmd = "qdiff {{ old }} {{ new }} --entry paper/paper.qmd --profile {{ profile }}", args = ["old", { arg = "new", default = "." }, { arg = "profile", default = "blind" }], description = "Track-changes pdf from OLD to NEW, anonymous under the blind profile" }
 
 # The talk.
 slides = { cmd = "quarto render", cwd = "slides", description = "Render the deck" }

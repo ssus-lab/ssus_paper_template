@@ -14,12 +14,12 @@ Python package, and qdiff.
 | Task | Does |
 |---|---|
 | `pixi run init` | once: copies the paper and deck starters into `paper/` and `slides/`, with their formats |
-| `pixi run render` | the working-paper pdf, `paper/paper.pdf` |
-| `pixi run html` | the working-paper html; `pixi run preview` re-renders it on save |
-| `pixi run blind` | the blinded manuscript, `paper/blind.pdf` |
-| `pixi run titlepage` | the separate title page, `paper/title-page.pdf` |
-| `pixi run submit` | both, then the journal bundle in `paper/submission/`, checked for identity leaks |
-| `pixi run diff OLD [NEW]` | the track-changes pdf from OLD to NEW, each a git ref or a directory; NEW defaults to the working tree |
+| `pixi run render` | every copy of the paper: `working`, `blind`, and `titlepage` |
+| `pixi run working` | the working paper, pdf and html, in `paper/_output/working/`; `pixi run preview` re-renders the html on save |
+| `pixi run blind` | the blinded manuscript, pdf and tex, in `paper/_output/blind/` |
+| `pixi run titlepage` | the separate title page, pdf and tex, in `paper/_output/titlepage/` |
+| `pixi run submit LABEL` | every copy, then `submissions/LABEL/`: the upload bundle, checked for identity leaks, and a snapshot of the paper's source; frozen once |
+| `pixi run diff OLD [NEW]` | the track-changes pdf from OLD to NEW, anonymous; OLD is `submissions/LABEL/source`, a git ref, or a directory, and NEW defaults to the working tree |
 | `pixi run tables` | every table formatter in `analysis/tables/`; the renders run it first |
 | `pixi run slides` | the deck |
 | `pixi run formats` | reinstalls every format at its pin; `pixi run versions` lists them |
@@ -35,9 +35,12 @@ src/{{ package }}/   the project's code, installed editable
 analysis/          the run scripts; each writes raw output to results/
 analysis/tables/   the formatters; each reads results/ and writes a table for the paper
 results/           the raw outputs (CSV)
-paper/             the manuscript: paper.qmd, _quarto.yml (title, abstract, authorship),
-                   _quarto-blind.yml (the submission profile), title-page.qmd
+paper/             the manuscript: paper.qmd and title-page.qmd; _quarto.yml (title,
+                   abstract, authorship) and one profile per copy, _quarto-working.yml,
+                   _quarto-blind.yml (the journal's knobs), _quarto-titlepage.yml
+paper/_output/     every copy, one folder per profile (git-ignored)
 slides/            the talk: slides.qmd
+submissions/       each submission as sent, with its source (tracked)
 ```
 
 ## Updating

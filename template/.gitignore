@@ -11,6 +11,13 @@ __pycache__/
 # qdiff's output and staging
 .qdiff/
 
+# Every copy of the paper renders into paper/_output/<profile>/. Frozen
+# submissions (submissions/LABEL/) are tracked: they are the record of what
+# was sent, and the old side of a diff.
+/paper/_output/
+# the blind pdf's compile folder, left only by a failed render
+/paper/_blind/
+
 # Render byproducts. The formats copy their fonts and mark beside each input
 # (format-resources); the patterns are rooted in each folder, so the
 # installed _extensions/ and paper/figures/ stay tracked.
@@ -26,4 +33,3 @@ __pycache__/
 /slides/mathjax-config.js
 /slides/*.html
 /slides/*_files/
-/paper/_blind/

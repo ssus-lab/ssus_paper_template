@@ -47,24 +47,59 @@ my-paper/
 │   └── tables/        formatters; each reads results/ and writes a table for the paper
 ├── results/           the raw outputs (CSV)
 ├── paper/             the manuscript, from ssus_papers' starter
-└── slides/            the talk, from ssus_slides' starter
+│   └── _output/       every copy, one folder per profile (git-ignored)
+├── slides/            the talk, from ssus_slides' starter
+└── submissions/       each submission as sent, with its source (tracked)
 ```
 
 `paper/` and `slides/` are sibling Quarto projects, each with its own
 `_quarto.yml` and `_extensions/`. The installed `_extensions/` are
 committed, so a clone renders without a network.
 
+## The copies
+
+Each copy of the paper is a Quarto profile in `paper/`, with its own formats
+and output folder, so a render of one copy never touches another's files:
+
+| Profile | Builds | Into |
+|---|---|---|
+| `working` (the default) | the working paper, pdf and html | `paper/_output/working/` |
+| `blind` | the blinded manuscript, pdf and the tex a portal receives | `paper/_output/blind/` |
+| `titlepage` | the separate title page, pdf and tex | `paper/_output/titlepage/` |
+
+`pixi run render` builds all three from the same prose, so they stay in
+step. `paper/_quarto.yml` carries what the copies share — title, abstract,
+authorship — and names no format, since a profile's formats merge with the
+base's. The blind profile carries the journal's knobs and a filter that
+omits the identity from any render under it.
+
+## Submissions
+
+`pixi run submit LABEL` renders every copy and freezes
+`submissions/LABEL/`: the upload bundle (the blind manuscript and title
+page, pdf and tex, and the figures), `MANIFEST.txt`, and `source/`, the
+paper's Quarto project as it was rendered, formats included. The
+blind-hygiene checklist must pass first, a label is used once, and a
+failing bundle leaves nothing behind. The folder is tracked, as the record
+of what was sent.
+
+For a resubmission, `pixi run diff submissions/LABEL/source` gives the
+track-changes pdf from the submitted source to the working tree, with no
+tag or worktree. It renders both sides under the blind profile, so the copy
+is anonymous, renders the old side with the formats it was submitted with,
+and marks a figure redrawn under the same file name. A git ref works as the
+old side too.
+
 ## The tasks
 
 | Task | Does |
 |---|---|
 | `init` | once: the paper and deck starters, with their formats, at the pinned tags |
-| `render` | the working-paper pdf (`ssus-masthead-pdf`) |
-| `html`, `preview` | the working-paper html; a live preview of it |
-| `blind` | the blinded manuscript (`ssus-blind-pdf`, rendered with `--profile blind`) |
-| `titlepage` | the separate title page (`ssus-titlepage-pdf`) |
-| `submit` | `blind` and `titlepage`, then the journal bundle in `paper/submission/`: the upload files, the figures the manuscript includes, the blind-hygiene checklist, and a manifest (`ssus_papers.submit`) |
-| `diff OLD [NEW]` | qdiff's track-changes pdf from OLD to NEW, each a git ref or a directory |
+| `render` | every copy: `working`, `blind`, `titlepage` |
+| `working`, `blind`, `titlepage` | one copy each |
+| `preview` | a live preview of the working-paper html |
+| `submit LABEL` | `render`, then `submissions/LABEL/` (`ssus_papers.submit`) |
+| `diff OLD [NEW]` | qdiff's anonymous track-changes pdf from OLD to NEW (default: the working tree) |
 | `tables` | every formatter in `analysis/tables/`; the renders run it first |
 | `slides` | the deck |
 | `formats`, `versions` | reinstall every format at its pin; list the pins and the installed formats |

@@ -15,8 +15,10 @@
 | `analysis/` | the run scripts; each writes raw output (CSV) to `results/` |
 | `analysis/tables/` | the formatters; each reads `results/` and writes `paper/_tbl_<name>.md` with `ssus_papers.Table` |
 | `results/` | the raw outputs |
-| `paper/` | the manuscript, a Quarto project: `paper.qmd`, `_quarto.yml` (title, abstract, authorship), `_quarto-blind.yml` (the submission profile), `title-page.qmd` |
+| `paper/` | the manuscript, a Quarto project: `paper.qmd`, `title-page.qmd`, `_quarto.yml` (title, abstract, authorship; no formats), and one profile per copy: `_quarto-working.yml` (the default), `_quarto-blind.yml` (the journal's knobs), `_quarto-titlepage.yml` |
+| `paper/_output/` | each copy's render, one folder per profile (git-ignored) |
 | `slides/` | the talk, a Quarto project: `slides.qmd` |
+| `submissions/` | each submission as sent: the bundle, `MANIFEST.txt`, and `source/`, the paper's source as rendered (tracked; never edited) |
 
 ## Build
 
@@ -33,7 +35,13 @@
 - The analysis writes raw outputs; the formatters make the tables. No
   number is typed into the manuscript by hand.
 - Every copy of the paper (working paper, blind manuscript, title page) is
-  built from `paper/paper.qmd` and `paper/_quarto.yml`. The identity lives
-  in `_quarto.yml`, and the blind format omits it; never try to remove it
-  with a profile, which merges and cannot.
+  built from `paper/paper.qmd` and `paper/_quarto.yml`, by `pixi run
+  render`, so the copies stay in step. The identity lives in `_quarto.yml`;
+  the blind format and the blind profile's filter omit it. Never try to
+  remove it with a profile's keys, which merge and cannot.
+- Keep formats out of `_quarto.yml`: a profile's formats merge with the
+  base's, and every copy's formats would render under every profile.
+- A submission is frozen by `pixi run submit LABEL` and never edited
+  after; a resubmission is a new label. Diff against it with
+  `pixi run diff submissions/LABEL/source`.
 - No task or script stages, commits, or tags anything in git.
