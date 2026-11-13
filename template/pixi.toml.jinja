@@ -16,8 +16,8 @@ PATH = "$PIXI_PROJECT_ROOT/.pixi/tools/bin:$PATH"
 # to take a later release, change the tag here (and ssus-papers' tag below,
 # the same release), run `pixi run formats`, and commit the result.
 # wordcount has no release tags, so it is pinned to a commit's archive.
-SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.8"
-SSUS_SLIDES = "ssus-lab/ssus_slides@v0.2.2"
+SSUS_PAPERS = "ssus-lab/ssus_papers@v0.0.9"
+SSUS_SLIDES = "ssus-lab/ssus_slides@v0.2.8"
 WORDCOUNT = "https://github.com/christopherkenny/wordcount/archive/57846cbf8fb01cfd9dd00ed1f72a241fb9731a38.zip"
 
 [dependencies]
@@ -36,7 +36,7 @@ matplotlib = "*"
 # src/, installed editable so analysis/ and notebooks/ import it.
 {{ package }} = { path = ".", editable = true }
 # ssus_papers.tables and ssus_papers.submit, from the formats' release.
-ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.8", subdirectory = "python" }
+ssus-papers = { git = "https://github.com/ssus-lab/ssus_papers", tag = "v0.0.9", subdirectory = "python" }
 # Track-changes PDFs between two versions of the paper (needs typst-diff).
 qdiff = { git = "https://github.com/knaaptime/qdiff", tag = "v0.3.0" }
 
